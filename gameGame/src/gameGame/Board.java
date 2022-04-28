@@ -11,6 +11,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.Timer;
 import javax.imageio.ImageIO;
@@ -24,9 +26,11 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	private Timer timer;
 	private Image path;
 	private JPanel pathPanel,menu;
+	private ArrayList<Tower> towers;
 	
 	public Board() {
 		initBoard();
+		towers = new ArrayList<Tower>();
 	}
 	public void initBoard(){
 		setFocusable(true);
@@ -57,6 +61,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		this.add(menu,c2);
 		timer = new Timer(DELAY,this);
 		timer.start();
+		
 	}
 	@Override
     public void paintComponent(Graphics g) {
@@ -72,6 +77,9 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		System.out.println(e.getX() + " | " + e.getY());
+		Duke num = new Duke();
+		towers.add(num);
+		menu.add(num.getLabel());
 		
 	}
 	@Override
