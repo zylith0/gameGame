@@ -17,20 +17,30 @@ import java.util.ArrayList;
 import javax.swing.Timer;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class Board extends JPanel implements ActionListener, MouseListener{
 	
-	private int DELAY = 10;
+	private int DELAY = 5;
 	private Timer timer;
 	private Image path;
 	private JPanel pathPanel,menu;
+	private JLabel roundnum,healthlabel;
+	private JButton roundBut;
 	private ArrayList<Tower> towers;
+	private ArrayList<Enemy> enemies;
+	private int round,ticks,toSpawn,health;
 	
 	public Board() {
-		initBoard();
+		round =0;
+		ticks=0;
+		toSpawn=0;
+		health=100;
+		enemies = new ArrayList<Enemy>();
 		towers = new ArrayList<Tower>();
+		initBoard();
 	}
 	public void initBoard(){
 		setFocusable(true);
@@ -42,23 +52,28 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		c.weightx=1;
 		c.weighty=1;
 		c.fill = c.BOTH;
-		GridBagConstraints c2 = new GridBagConstraints();
-		c2.gridwidth=1;
-		c2.gridheight=1;
-		c2.weightx=0.3;
-		c2.weighty=1;
-		c2.fill = c2.BOTH;
 		try {
-			path = ImageIO.read(new File("path.png")).getScaledInstance(1500, 1080, Image.SCALE_SMOOTH);
+			path = ImageIO.read(new File("path.png")).getScaledInstance(1067, 768, Image.SCALE_SMOOTH);
 		}
 		catch(Exception e) {e.printStackTrace();}
 		pathPanel = new JPanel();
 		pathPanel.setOpaque(false);
-		pathPanel.setBackground(Color.black);
+		this.setBackground(Color.gray);
 		menu = new JPanel();
-		menu.setBackground(Color.green);
+		menu.setOpaque(false);
+		//menu.setBackground(Color.gray);
 		this.add(pathPanel,c);
-		this.add(menu,c2);
+		c.weightx=0.3;
+		this.add(menu,c);
+		roundnum = new JLabel("Round : " +round);
+		c.anchor=c.FIRST_LINE_END;
+		pathPanel.add(roundnum,c);
+		healthlabel = new JLabel("Health : " + health);
+		c.anchor=c.FIRST_LINE_START;
+		pathPanel.add(healthlabel,c);
+		roundBut = new JButton("Next round");
+		roundBut.addActionListener(this);
+		menu.add(roundBut);
 		timer = new Timer(DELAY,this);
 		timer.start();
 		
@@ -66,20 +81,65 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	@Override
     public void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		//path image
 		g.drawImage(path, 0, 0, null);
+		//menu objects
+		g.setColor(Color.white);
+		//g.fillRect(1100, 100, 50, 50);
+		for(Enemy e: enemies) {
+			g.drawImage(e.getImage(),e.x,e.y,null);
+		}
         Toolkit.getDefaultToolkit().sync();
     }
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		this.repaint();
-		
+		if(e.getSource()==this.timer) {
+			ticks++;
+			for(int i=0;i<enemies.size();i++) {
+				//will be based on map but for now the turn is 503,518
+				if(enemies.get(i).x>503&&enemies.get(i).y>216) {
+					enemies.get(i).dy=-1;
+					enemies.get(i).dx=0;
+				}
+				else if(enemies.get(i).y<=215) {
+					enemies.get(i).dy=0;
+					enemies.get(i).dx=1;
+				}
+				enemies.get(i).move();
+				//1066 is end of map
+				if(enemies.get(i).x>=1066) {
+					if(enemies.get(i) instanceof Baloon) {
+						health = health - 1;
+					}
+					healthlabel.setText("Health : " + health);
+					enemies.remove(i);
+					break;
+				}
+			}
+			if(ticks%65==0) {
+				spawnEnemies(round);
+			}
+			this.repaint();
+		}
+		if(e.getSource()==this.roundBut) {
+			if(this.enemies.isEmpty()) {
+				this.round++;
+				if(round==1) {
+					toSpawn=5;
+				}
+				this.roundnum.setText("Round : " + round);
+			}
+		}
+	}
+	public void spawnEnemies(int r) {
+		if(r==1&toSpawn>0) {
+			enemies.add(new Baloon(0,515,1,0));
+			toSpawn--;
+		}
 	}
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		System.out.println(e.getX() + " | " + e.getY());
-		Duke num = new Duke();
-		towers.add(num);
-		menu.add(num.getLabel());
 		
 	}
 	@Override

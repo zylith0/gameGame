@@ -12,9 +12,8 @@ public class Duke extends Tower{
 	protected Image duke;
 	protected JLabel imageicon;
 	public Duke() {
-		super();
 		try {
-			duke = ImageIO.read(new File("duke.png")).getScaledInstance(50, 50, Image.SCALE_SMOOTH);
+			duke = ImageIO.read(new File("duke.png")).getScaledInstance(100, 100, Image.SCALE_SMOOTH);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
