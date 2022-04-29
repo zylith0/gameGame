@@ -68,7 +68,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		menu.setLayout(new GridBagLayout());
 		//menu.setBackground(Color.gray);
 		this.add(pathPanel,c);
-		c.weightx=0.3;
+		c.weightx=0.23;
 		this.add(menu,c);
 		healthlabel = new JLabel("Health : " + health);
 		roundnum = new JLabel("Round : " +round);
@@ -76,16 +76,17 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		pathPanel.add(roundnum,c);
 		roundBut = new JButton("Next round");
 		roundBut.addActionListener(this);
-		c.insets = new Insets(5,5,5,5);
-		c.anchor=c.NORTH;
-		c.fill=c.NONE;
+		c.insets = new Insets(5,0,0,5);
+		c.anchor=GridBagConstraints.FIRST_LINE_END;
+		c.fill=GridBagConstraints.NONE;
 		c.weightx=0;
-		c.weighty=0;
+		c.weighty=0.1;
 		menu.add(roundBut,c);
-		c.weightx=0.2;
-		c.weighty=0.4; 
-		c.fill=c.HORIZONTAL;
-		c.anchor=c.CENTER;
+		c.insets = new Insets(5,5,5,5);
+		c.weightx=1;
+		c.weighty=1; 
+		c.fill=GridBagConstraints.BOTH;
+		c.anchor=GridBagConstraints.CENTER;
 		
 		for(int i=0;i<5;i++) {
 			towerpanels.add(new JPanel());
