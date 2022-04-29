@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,6 +32,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	private JButton roundBut;
 	private ArrayList<Tower> towers;
 	private ArrayList<Enemy> enemies;
+	private ArrayList<JPanel> towerpanels;
 	private int round,ticks,toSpawn,health;
 	
 	public Board() {
@@ -40,8 +42,10 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		health=100;
 		enemies = new ArrayList<Enemy>();
 		towers = new ArrayList<Tower>();
+		towerpanels = new ArrayList<JPanel>();
 		initBoard();
 	}
+	
 	public void initBoard(){
 		setFocusable(true);
 		this.setLayout(new GridBagLayout());
@@ -61,19 +65,32 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		this.setBackground(Color.gray);
 		menu = new JPanel();
 		menu.setOpaque(false);
+		menu.setLayout(new GridBagLayout());
 		//menu.setBackground(Color.gray);
 		this.add(pathPanel,c);
 		c.weightx=0.3;
 		this.add(menu,c);
-		roundnum = new JLabel("Round : " +round);
-		c.anchor=c.FIRST_LINE_END;
-		pathPanel.add(roundnum,c);
 		healthlabel = new JLabel("Health : " + health);
-		c.anchor=c.FIRST_LINE_START;
+		roundnum = new JLabel("Round : " +round);
 		pathPanel.add(healthlabel,c);
+		pathPanel.add(roundnum,c);
 		roundBut = new JButton("Next round");
 		roundBut.addActionListener(this);
-		menu.add(roundBut);
+		c.insets = new Insets(5,5,5,5);
+		c.anchor=c.NORTH;
+		c.fill=c.NONE;
+		c.weightx=0;
+		c.weighty=0;
+		menu.add(roundBut,c);
+		c.weightx=0.2;
+		c.weighty=0.4; 
+		c.fill=c.HORIZONTAL;
+		c.anchor=c.CENTER;
+		
+		for(int i=0;i<5;i++) {
+			towerpanels.add(new JPanel());
+			menu.add(towerpanels.get(i),c);
+		}
 		timer = new Timer(DELAY,this);
 		timer.start();
 		
