@@ -9,17 +9,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 public class Duke extends Tower{
-	protected Image duke;
-	protected JLabel imageicon;
-	public Duke() {
-		try {
-			duke = ImageIO.read(new File("duke.png")).getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		imageicon = new JLabel(new ImageIcon(duke));
-	}
-	public JLabel getLabel() {
-		return imageicon;
+	public Duke(int x, int y, Image img) {
+		super(x,y,img);
 	}
 }
