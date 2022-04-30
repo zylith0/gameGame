@@ -2,6 +2,7 @@ package gameGame;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -31,24 +32,29 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	private Timer timer;
 	private Image path;
 	private JPanel pathPanel,menu;
-	private JLabel roundnum,healthlabel;
+	private JLabel roundnum,healthlabel,moneyLab;
 	private JButton roundBut;
 	private ArrayList<Tower> towers;
 	private ArrayList<Enemy> enemies;
 	private ArrayList<TPanel> towerpanels;
-	private int round,ticks,toSpawn,health,toPlace;
+	private ArrayList<Projectile> shots;
+	private int round,ticks,toSpawn,health,toPlace,money;
 	private boolean placing;
+	private Color radiusHighlight;
 	
 	public Board() {
 		round =0;
 		ticks=0;
 		toSpawn=0;
+		money=500;
 		health=100;
 		placing=false;
 		toPlace=0;
+		radiusHighlight = new Color(128,128,128,125);
 		enemies = new ArrayList<Enemy>();
 		towers = new ArrayList<Tower>();
 		towerpanels = new ArrayList<TPanel>();
+		shots = new ArrayList<Projectile>();
 		initBoard();
 	}
 	
@@ -78,6 +84,9 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		this.add(menu,c);
 		healthlabel = new JLabel("Health : " + health);
 		roundnum = new JLabel("Round : " +round);
+		moneyLab = new JLabel("$" + money);
+		moneyLab.setFont(new Font("Verdana", Font.PLAIN,18));
+		moneyLab.setForeground(Color.white);
 		pathPanel.add(healthlabel,c);
 		pathPanel.add(roundnum,c);
 		roundBut = new JButton("Next round");
@@ -88,6 +97,9 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		c.weightx=0;
 		c.weighty=0.1;
 		menu.add(roundBut,c);
+		c.weightx=1;
+		
+		menu.add(moneyLab,c);
 		c.insets = new Insets(5,5,800,5);
 		c.weightx=1;
 		c.weighty=1; 
@@ -95,13 +107,14 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		c.anchor=GridBagConstraints.CENTER;
 		c.ipady=65;
 		String name="default";
+		int price = 0;
 		for(int i=0;i<5;i++) {
-			if(i==0) {name="Tower1";}
-			if(i==1) {name="Tower2";}
-			if(i==2) {name="Tower3";}
-			if(i==3) {name="Tower4";}
-			if(i==4) {name="Tower5";}
-			towerpanels.add(new TPanel(name));
+			if(i==0) {name="Tower1";price=125;}
+			if(i==1) {name="Tower2";price=225;}
+			if(i==2) {name="Tower3";price=275;}
+			if(i==3) {name="Tower4";price=315;}
+			if(i==4) {name="Tower5";price=350;}
+			towerpanels.add(new TPanel(name,price,i));
 			towerpanels.get(i).addMouseListener(this);
 			menu.add(towerpanels.get(i),c);
 		}
@@ -119,12 +132,20 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 			//g.drawImage(t.getImage(), t.getPoint().x-132,t.getPoint().y-85,null);
 			if(t.highlighted) {
 				Point mouse = MouseInfo.getPointerInfo().getLocation();
+				g.setColor(this.radiusHighlight);
 				g.drawImage(t.getImage(),mouse.x-30,mouse.y-30,null);
+				//need to change to be dependent on different clases
+				g.fillOval(mouse.x-200, mouse.y-200, 400, 400);
 			}
 		}
 		//print towers
 		for(Tower t: towers) {
 			g.drawImage(t.img,t.x,t.y,null);
+		}
+		//draw projectiles
+		for(Projectile p: shots) {
+			g.setColor(Color.yellow);
+			g.fillOval(p.x+p.w/2, p.y-p.h/2, p.w, p.h);
 		}
 		g.setColor(Color.white);
 		for(Enemy e: enemies) {
@@ -136,6 +157,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource()==this.timer) {
 			ticks++;
+			//enemy movement
 			for(int i=0;i<enemies.size();i++) {
 				//will be based on map but for now the turn is 503,518
 				if(enemies.get(i).x>503&&enemies.get(i).y>216) {
@@ -157,6 +179,31 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 					break;
 				}
 			}
+			//move projectiles
+			for(Projectile p: shots) {
+				p.move();
+			}
+			//enemy hit detection with point distance
+			//could be optimized with boudning boxes to miminize big O
+			for(Tower t: towers) {
+				for(Enemy em: enemies) {
+					double distance = t.getPoint().distance(em.getPoint());
+					//System.out.println(distance);
+					if(distance<=t.getRadius()) {
+						//is within radius of tower
+						if(ticks % t.firerate==0) {
+							//speed is going to be magnitude 5
+							int speed = 5;
+							double dx = (em.x-t.x)/distance*speed;
+							double dy = (em.y-t.y)/distance*speed;
+							shots.add(new Projectile(t.x,t.y,(int)Math.round(dx),(int)Math.round(dy)));
+						}
+						//System.out.println("within radius");
+						break;
+					}
+				}
+			}
+			//spawning
 			if(ticks%65==0) {
 				spawnEnemies(round);
 			}
@@ -182,18 +229,36 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	public void mouseClicked(MouseEvent e) {
 		if(e.getSource() instanceof TPanel) {
 			TPanel pointer = (TPanel)e.getSource();
-			if(!pointer.highlighted) {
+			if(!pointer.highlighted && this.placing==false) {
 				pointer.highlighted=true;
+				this.toPlace=pointer.getID();
 				this.placing=true;
+				pointer.setBackground(Color.black);
+			}
+			else if(!pointer.highlighted) {
+				for(TPanel t: towerpanels) {
+					t.highlighted=false;
+					t.setBackground(Color.white);
+				}
+				this.toPlace=pointer.getID();
+				pointer.highlighted=true;
 				pointer.setBackground(Color.black);
 			}
 			else if(pointer.highlighted){
 				pointer.highlighted=false;
+				this.placing=false;
+				toPlace=0;
 				pointer.setBackground(Color.white);
 			}
 		}
 		if(e.getSource() instanceof Board && this.placing) {
-			towers.add(new Duke(e.getX()-30,e.getY()-30,towerpanels.get(toPlace).img));
+			if(this.money>=towerpanels.get(toPlace).getCost()) {
+				money=money-towerpanels.get(toPlace).getCost();
+				towers.add(new Duke(e.getX()-30,e.getY()-30,towerpanels.get(toPlace).img,200,50));
+				//update jlabel
+				this.moneyLab.setText("$"+this.money);
+			}
+			
 		}
 	}
 	@Override

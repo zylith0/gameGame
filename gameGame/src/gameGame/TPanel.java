@@ -12,9 +12,12 @@ public class TPanel extends JPanel{
 	protected Image img;
 	protected int x,y;
 	protected boolean highlighted;
+	protected int price,id;
 	
-	public TPanel(String s) {
+	public TPanel(String s, int p,int i) {
 		this.name=s;
+		this.price=p;
+		this.id=i;
 		highlighted = false;
 		try {
 			//change to s later when towers are decided
@@ -36,5 +39,11 @@ public class TPanel extends JPanel{
 		Point p = this.getLocation();
 		javax.swing.SwingUtilities.convertPointToScreen(p, this);
 		return p;
+	}
+	public int getID() {
+		return id;
+	}
+	public int getCost() {
+		return price;
 	}
 }
