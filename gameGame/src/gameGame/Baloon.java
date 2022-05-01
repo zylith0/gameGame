@@ -1,6 +1,7 @@
 package gameGame;
 
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.io.File;
 
 import javax.imageio.ImageIO;
@@ -9,13 +10,14 @@ public class Baloon extends Enemy{
 	
 	protected Image image;
 	
-	public Baloon(int x,int y) {
-		super(x, y);
+	public Baloon(int x,int y, int ei) {
+		super(x, y, ei);
 		initPicture();
 		
 	}
-	public Baloon(int x,int y,int dx,int dy) {
-		super(x,y,dx,dy);
+	public Baloon(int x,int y,int dx,int dy, int ei) {
+		//baloon hp is 2
+		super(x,y,dx,dy,3, ei);
 		initPicture();
 	}
 	public void initPicture() {
@@ -29,5 +31,8 @@ public class Baloon extends Enemy{
 	public Image getImage() {
 		return image;
 	}
-
+	public Rectangle getBounds() {
+		this.bounds.setBounds(x, y, 40, 40);
+		return this.bounds;
+	}
 }

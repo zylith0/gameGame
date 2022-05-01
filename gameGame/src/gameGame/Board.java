@@ -38,7 +38,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	private ArrayList<Enemy> enemies;
 	private ArrayList<TPanel> towerpanels;
 	private ArrayList<Projectile> shots;
-	private int round,ticks,toSpawn,health,toPlace,money;
+	private int round,ticks,toSpawn,health,toPlace,money,enemyID;
 	private boolean placing;
 	private Color radiusHighlight;
 	
@@ -50,6 +50,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		health=100;
 		placing=false;
 		toPlace=0;
+		enemyID=0;
 		radiusHighlight = new Color(128,128,128,125);
 		enemies = new ArrayList<Enemy>();
 		towers = new ArrayList<Tower>();
@@ -131,6 +132,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		for(TPanel t: towerpanels) {
 			//g.drawImage(t.getImage(), t.getPoint().x-132,t.getPoint().y-85,null);
 			if(t.highlighted) {
+				//for gray circle when placing to indicate radius
 				Point mouse = MouseInfo.getPointerInfo().getLocation();
 				g.setColor(this.radiusHighlight);
 				g.drawImage(t.getImage(),mouse.x-30,mouse.y-30,null);
@@ -145,7 +147,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		//draw projectiles
 		for(Projectile p: shots) {
 			g.setColor(Color.yellow);
-			g.fillOval(p.x+p.w/2, p.y-p.h/2, p.w, p.h);
+			g.fillOval(p.x, p.y, p.w, p.h);
 		}
 		g.setColor(Color.white);
 		for(Enemy e: enemies) {
@@ -179,9 +181,20 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 					break;
 				}
 			}
-			//move projectiles
+			//move projectiles & check for collsion ( saves a for loop )
 			for(Projectile p: shots) {
 				p.move();
+				for(Enemy em: enemies) {
+					if(em.getBounds().intersects(p.getBounds())&&!p.hasHit(em.getID())) {
+						//System.out.println("intersects");
+						p.hit(em.ei);
+						em.damage(p.damage);
+					}
+					if(em.hp<=0) {
+						enemies.remove(em);
+						break;
+					}
+				}
 			}
 			//enemy hit detection with point distance
 			//could be optimized with boudning boxes to miminize big O
@@ -196,9 +209,10 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 							int speed = 5;
 							double dx = (em.x-t.x)/distance*speed;
 							double dy = (em.y-t.y)/distance*speed;
-							shots.add(new Projectile(t.x,t.y,(int)Math.round(dx),(int)Math.round(dy)));
+							shots.add(new Projectile(t.getPoint().x,t.getPoint().y,(int)Math.round(dx),(int)Math.round(dy), 20,20));
 						}
 						//System.out.println("within radius");
+						//break is necessary so it only targets first enemies in radius // add for loop later for potential targeting options
 						break;
 					}
 				}
@@ -221,7 +235,8 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	}
 	public void spawnEnemies(int r) {
 		if(r==1&toSpawn>0) {
-			enemies.add(new Baloon(0,515,1,0));
+			enemies.add(new Baloon(0,515,1,0,this.enemyID));
+			enemyID++;
 			toSpawn--;
 		}
 	}
