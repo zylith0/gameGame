@@ -18,6 +18,9 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 
 import javax.swing.Timer;
 import javax.imageio.ImageIO;
@@ -30,7 +33,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	
 	private int DELAY = 1;
 	private Timer timer;
-	private Image path;
+	private Image map;
 	private JPanel pathPanel,menu;
 	private JLabel roundnum,healthlabel,moneyLab;
 	private JButton roundBut;
@@ -41,6 +44,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	private int round,ticks,toSpawn,health,toPlace,money,enemyID;
 	private boolean placing;
 	private Color radiusHighlight;
+	private Map<Point,String> path = new HashMap<Point,String>();
 	
 	public Board() {
 		round =0;
@@ -48,6 +52,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		toSpawn=0;
 		money=500;
 		health=100;
+		//sets map and text file to read
 		placing=false;
 		toPlace=0;
 		enemyID=0;
@@ -60,6 +65,8 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	}
 	
 	public void initBoard(){
+		//can change string for different map
+		readMap("map1");
 		setFocusable(true);
 		this.setLayout(new GridBagLayout());
 		addMouseListener(this);
@@ -69,10 +76,6 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		c.weightx=1;
 		c.weighty=1;
 		c.fill = c.BOTH;
-		try {
-			path = ImageIO.read(new File("path.png")).getScaledInstance(1500, 1080, Image.SCALE_SMOOTH);
-		}
-		catch(Exception e) {e.printStackTrace();}
 		pathPanel = new JPanel();
 		pathPanel.setOpaque(false);
 		this.setBackground(Color.gray);
@@ -84,7 +87,11 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		c.weightx=0.23;
 		this.add(menu,c);
 		healthlabel = new JLabel("Health : " + health);
+		healthlabel.setFont(new Font("Verdana", Font.PLAIN,18));
+		healthlabel.setForeground(Color.white);
 		roundnum = new JLabel("Round : " +round);
+		roundnum.setFont(new Font("Verdana", Font.PLAIN,18));
+		roundnum.setForeground(Color.white);
 		moneyLab = new JLabel("$" + money);
 		moneyLab.setFont(new Font("Verdana", Font.PLAIN,18));
 		moneyLab.setForeground(Color.white);
@@ -123,11 +130,23 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		timer.start();
 		
 	}
+	private void readMap(String s) {
+		try {
+			Scanner scnr = new Scanner(new File(s+".txt"));
+			map = ImageIO.read(new File(s+".png")).getScaledInstance(1500, 1080, Image.SCALE_SMOOTH);
+			path.clear();
+			while(scnr.hasNextLine()) {
+				String[] coords = scnr.nextLine().split(",");
+				path.put(new Point(Integer.parseInt(coords[0]),Integer.parseInt(coords[1])), scnr.nextLine().strip());
+			}
+		}
+		catch(Exception e) {e.printStackTrace();}
+	}
 	@Override
     public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		//path image
-		g.drawImage(path, 0, 0, null);
+		g.drawImage(map, 0, 0, null);
 		//menu objects
 		for(TPanel t: towerpanels) {
 			//g.drawImage(t.getImage(), t.getPoint().x-132,t.getPoint().y-85,null);
@@ -161,18 +180,31 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 			ticks++;
 			//enemy movement
 			for(int i=0;i<enemies.size();i++) {
-				//will be based on map but for now the turn is 503,518
-				if(enemies.get(i).x>503&&enemies.get(i).y>216) {
-					enemies.get(i).dy=-1;
-					enemies.get(i).dx=0;
+				System.out.println(enemies.get(0).getPoint());
+				//based on text file map
+				if(path.keySet().contains(enemies.get(i).getPoint())){
+					String s = path.get(enemies.get(i).getPoint());
+					if(s.equals("DOWN")) {
+						enemies.get(i).setDx(0);
+						enemies.get(i).setDy(1);
+					}
+					if(s.equals("LEFT")) {
+						enemies.get(i).setDx(-1);
+						enemies.get(i).setDy(0);
+					}
+					if(s.equals("RIGHT")) {
+						enemies.get(i).setDx(1);
+						enemies.get(i).setDy(0);
+					}
+					if(s.equals("UP")) {
+						enemies.get(i).setDx(0);
+						enemies.get(i).setDy(-1);
+					}
 				}
-				else if(enemies.get(i).y<=215) {
-					enemies.get(i).dy=0;
-					enemies.get(i).dx=1;
-				}
+				
 				enemies.get(i).move();
-				//1066 is end of map
-				if(enemies.get(i).x>=1066) {
+				//1491 is end of map
+				if(enemies.get(i).x>=1491) {
 					if(enemies.get(i) instanceof Baloon) {
 						health = health - 1;
 					}
@@ -235,13 +267,15 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	}
 	public void spawnEnemies(int r) {
 		if(r==1&toSpawn>0) {
-			enemies.add(new Baloon(0,515,1,0,this.enemyID));
+			//spawn is 0,210 and they will start right on map1
+			enemies.add(new Baloon(0,210,1,0,this.enemyID));
 			enemyID++;
 			toSpawn--;
 		}
 	}
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		System.out.println(e.getX() + " | " + e.getY());
 		if(e.getSource() instanceof TPanel) {
 			TPanel pointer = (TPanel)e.getSource();
 			if(!pointer.highlighted && this.placing==false) {
