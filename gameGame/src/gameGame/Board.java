@@ -19,7 +19,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Scanner;
 
 import javax.swing.Timer;
@@ -41,15 +43,16 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	private ArrayList<Enemy> enemies;
 	private ArrayList<TPanel> towerpanels;
 	private ArrayList<Projectile> shots;
-	private int round,ticks,toSpawn,health,toPlace,money,enemyID;
+	private int round,ticks,health,toPlace,money,enemyID;
 	private boolean placing;
 	private Color radiusHighlight;
 	private Map<Point,String> path = new HashMap<Point,String>();
+	private Map<Integer,String[]> rounds = new HashMap<Integer,String[]>();
+	private Queue<Enemy> toSpawn = new LinkedList<Enemy>();
 	
 	public Board() {
 		round =0;
 		ticks=0;
-		toSpawn=0;
 		money=500;
 		health=100;
 		//sets map and text file to read
@@ -67,6 +70,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	public void initBoard(){
 		//can change string for different map
 		readMap("map1");
+		loadRounds();
 		setFocusable(true);
 		this.setLayout(new GridBagLayout());
 		addMouseListener(this);
@@ -129,6 +133,16 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		timer = new Timer(DELAY,this);
 		timer.start();
 		
+	}
+	private void loadRounds() {
+		try {
+			Scanner scnr = new Scanner(new File("rounds.txt"));
+			while(scnr.hasNextLine()) {
+				rounds.put(Integer.parseInt(scnr.nextLine().strip()), scnr.nextLine().strip().split(","));
+			}
+		}
+		catch(Exception e) {e.printStackTrace();}
+		System.out.println(rounds);
 	}
 	private void readMap(String s) {
 		try {
@@ -221,6 +235,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 						//System.out.println("intersects");
 						p.hit(em.ei);
 						em.damage(p.damage);
+						//shots.remove(p);
 					}
 					if(em.hp<=0) {
 						enemies.remove(em);
@@ -239,8 +254,8 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 						if(ticks % t.firerate==0) {
 							//speed is going to be magnitude 5
 							int speed = 5;
-							double dx = (em.x-t.x)/distance*speed;
-							double dy = (em.y-t.y)/distance*speed;
+							double dx = ((em.x-t.x)/distance)*speed;
+							double dy = ((em.y-t.y)/distance)*speed;
 							shots.add(new Projectile(t.getPoint().x,t.getPoint().y,(int)Math.round(dx),(int)Math.round(dy), 20,20));
 						}
 						//System.out.println("within radius");
@@ -250,27 +265,40 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 				}
 			}
 			//spawning
-			if(ticks%65==0) {
-				spawnEnemies(round);
+			if(ticks%50==0) {
+				spawnEnemies();
 			}
 			this.repaint();
 		}
 		if(e.getSource()==this.roundBut) {
 			if(this.enemies.isEmpty()) {
 				this.round++;
-				if(round==1) {
-					toSpawn=5;
-				}
+				initRound(round);
 				this.roundnum.setText("Round : " + round);
 			}
 		}
 	}
-	public void spawnEnemies(int r) {
-		if(r==1&toSpawn>0) {
-			//spawn is 0,210 and they will start right on map1
-			enemies.add(new Baloon(0,210,1,0,this.enemyID));
-			enemyID++;
-			toSpawn--;
+	public void initRound(int r) {
+		for(String s: rounds.get(r)) {
+			String[] str = s.split(" ");
+			for(int i=0;i<Integer.parseInt(str[0]);i++) {
+				int id = Integer.parseInt(str[1]);
+				if(id==1) {
+					toSpawn.add(new Baloon(0,210,1,0,this.enemyID));
+				}
+				else if(id==2) {
+					toSpawn.add(new Baloon2(0,210,1,0,this.enemyID));
+				}
+				else if(id==3) {
+					toSpawn.add(new Baloon3(0,210,1,0,this.enemyID));
+				}
+				enemyID++;
+			}
+		}
+	}
+	public void spawnEnemies() {
+		if(!toSpawn.isEmpty()) {
+			enemies.add(toSpawn.poll());
 		}
 	}
 	@Override
