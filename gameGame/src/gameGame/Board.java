@@ -10,6 +10,7 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,11 +19,13 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 import javax.swing.Timer;
 import javax.imageio.ImageIO;
@@ -46,12 +49,12 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	private int round,ticks,health,toPlace,money,enemyID;
 	private boolean placing;
 	private Color radiusHighlight;
-	private Map<Point,String> path = new HashMap<Point,String>();
+	private Map<Rectangle,String> path = new HashMap<Rectangle,String>();
 	private Map<Integer,String[]> rounds = new HashMap<Integer,String[]>();
 	private Queue<Enemy> toSpawn = new LinkedList<Enemy>();
 	
 	public Board() {
-		round =0;
+		round =1;
 		ticks=0;
 		money=500;
 		health=100;
@@ -150,8 +153,8 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 			map = ImageIO.read(new File(s+".png")).getScaledInstance(1500, 1080, Image.SCALE_SMOOTH);
 			path.clear();
 			while(scnr.hasNextLine()) {
-				String[] coords = scnr.nextLine().split(",");
-				path.put(new Point(Integer.parseInt(coords[0]),Integer.parseInt(coords[1])), scnr.nextLine().strip());
+				int[] coords = Stream.of(scnr.nextLine().split(",")).mapToInt(x -> Integer.parseInt(x)).toArray();
+				path.put(new Rectangle(coords[0],coords[1],coords[2],coords[3]), scnr.nextLine().strip());
 			}
 		}
 		catch(Exception e) {e.printStackTrace();}
@@ -169,7 +172,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 				Point mouse = MouseInfo.getPointerInfo().getLocation();
 				g.setColor(this.radiusHighlight);
 				g.drawImage(t.getImage(),mouse.x-30,mouse.y-30,null);
-				//need to change to be dependent on different clases
+				//need to change to be dependent on different classes
 				g.fillOval(mouse.x-200, mouse.y-200, 400, 400);
 			}
 		}
@@ -179,8 +182,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		}
 		//draw projectiles
 		for(Projectile p: shots) {
-			g.setColor(Color.yellow);
-			g.fillOval(p.x, p.y, p.w, p.h);
+			g.drawImage(p.getImage(), p.x, p.y, null);
 		}
 		g.setColor(Color.white);
 		for(Enemy e: enemies) {
@@ -192,33 +194,35 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource()==this.timer) {
 			ticks++;
-			//enemy movement
+
 			for(int i=0;i<enemies.size();i++) {
-				System.out.println(enemies.get(0).getPoint());
+				Enemy em = enemies.get(i);
 				//based on text file map
-				if(path.keySet().contains(enemies.get(i).getPoint())){
-					String s = path.get(enemies.get(i).getPoint());
-					if(s.equals("DOWN")) {
-						enemies.get(i).setDx(0);
-						enemies.get(i).setDy(1);
-					}
-					if(s.equals("LEFT")) {
-						enemies.get(i).setDx(-1);
-						enemies.get(i).setDy(0);
-					}
-					if(s.equals("RIGHT")) {
-						enemies.get(i).setDx(1);
-						enemies.get(i).setDy(0);
-					}
-					if(s.equals("UP")) {
-						enemies.get(i).setDx(0);
-						enemies.get(i).setDy(-1);
+				for(Rectangle r: path.keySet()) {
+					if(r.contains(em.getPoint())) {
+						String s = path.get(r);
+						if(s.equals("DOWN")) {
+							em.setDx(0);
+							em.setDy(em.getSpeed());
+						}
+						if(s.equals("LEFT")) {
+							em.setDx(em.getSpeed()*-1);
+							em.setDy(0);
+						}
+						if(s.equals("RIGHT")) {
+							em.setDx(em.getSpeed());
+							em.setDy(0);
+						}
+						if(s.equals("UP")) {
+							em.setDx(0);
+							em.setDy(em.getSpeed()*-1);
+						}
 					}
 				}
 				
-				enemies.get(i).move();
+				em.move();
 				//1491 is end of map
-				if(enemies.get(i).x>=1491) {
+				if(em.x>=1491) {
 					if(enemies.get(i) instanceof Baloon) {
 						health = health - 1;
 					}
@@ -256,7 +260,8 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 							int speed = 5;
 							double dx = ((em.x-t.x)/distance)*speed;
 							double dy = ((em.y-t.y)/distance)*speed;
-							shots.add(new Projectile(t.getPoint().x,t.getPoint().y,(int)Math.round(dx),(int)Math.round(dy), 20,20));
+							int theta = (int)Math.round(Math.toDegrees(Math.atan((em.x-t.x)/(em.y-t.y))));
+							shots.add(new Projectile(t.getPoint().x,t.getPoint().y,(int)Math.round(dx),(int)Math.round(dy), 20,20,theta));
 						}
 						//System.out.println("within radius");
 						//break is necessary so it only targets first enemies in radius // add for loop later for potential targeting options
@@ -284,13 +289,13 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 			for(int i=0;i<Integer.parseInt(str[0]);i++) {
 				int id = Integer.parseInt(str[1]);
 				if(id==1) {
-					toSpawn.add(new Baloon(0,210,1,0,this.enemyID));
+					toSpawn.add(new Baloon(0,210,1,0,this.enemyID,1));
 				}
 				else if(id==2) {
-					toSpawn.add(new Baloon2(0,210,1,0,this.enemyID));
+					toSpawn.add(new Baloon2(0,210,2,0,this.enemyID,2));
 				}
 				else if(id==3) {
-					toSpawn.add(new Baloon3(0,210,1,0,this.enemyID));
+					toSpawn.add(new Baloon3(0,210,1,0,this.enemyID,1));
 				}
 				enemyID++;
 			}

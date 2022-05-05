@@ -1,15 +1,21 @@
 package gameGame;
 
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
+import java.io.File;
 import java.util.ArrayList;
 
+import javax.imageio.ImageIO;
+
 public class Projectile {
-	protected int x,y,dx,dy,damage,w,h;
+	protected int x,y,dx,dy,damage,w,h,theta;
 	protected Rectangle bounds;
 	protected Point point;
 	protected ArrayList<Integer> hits;
-	public Projectile(int x,int y, int dx, int dy, int w, int h) {
+	protected Image image;
+	public Projectile(int x,int y, int dx, int dy, int w, int h, int theta) {
 		hits = new ArrayList<Integer>();
 		this.x=x;
 		this.y=y;
@@ -17,9 +23,17 @@ public class Projectile {
 		this.dy=dy;
 		this.w=w;
 		this.h=h;
+		this.theta=theta; 
 		this.damage=1;
 		this.point = new Point(x,y);
 		this.bounds = new Rectangle(x,y,w,h);
+		loadImage();
+	}
+	public void loadImage() {
+		try {
+			image = ImageIO.read(new File("bullet.png")).getScaledInstance(w, h, Image.SCALE_SMOOTH);;
+		}
+		catch(Exception e) {e.printStackTrace();}
 	}
 	public void move() {
 		x=x+dx;
@@ -38,5 +52,11 @@ public class Projectile {
 	}
 	public boolean hasHit(int ei) {
 		return hits.contains(ei);
+	}
+	public Image getImage() {
+		return image;
+	}
+	public void setRotation(double x) {
+		AffineTransform tx = AffineTransform.getRotateInstance(this.theta, w/2, h/2);
 	}
 }

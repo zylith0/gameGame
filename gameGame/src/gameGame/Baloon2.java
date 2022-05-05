@@ -15,8 +15,8 @@ public class Baloon2 extends Enemy{
 		initPicture();
 		
 	}
-	public Baloon2(int x,int y,int dx,int dy, int ei) {
-		super(x,y,dx,dy,5, ei);
+	public Baloon2(int x,int y,int dx,int dy, int ei, int speed) {
+		super(x,y,dx,dy,3, ei,speed);
 		initPicture();
 	}
 	public void initPicture() {
