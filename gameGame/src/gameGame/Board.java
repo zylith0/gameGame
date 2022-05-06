@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
@@ -54,7 +55,7 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 	private Queue<Enemy> toSpawn = new LinkedList<Enemy>();
 	
 	public Board() {
-		round =1;
+		round =0;
 		ticks=0;
 		money=500;
 		health=100;
@@ -160,7 +161,8 @@ public class Board extends JPanel implements ActionListener, MouseListener{
 		catch(Exception e) {e.printStackTrace();}
 	}
 	@Override
-    public void paintComponent(Graphics g) {
+    public void paintComponent(Graphics h) {
+		Graphics2D g = (Graphics2D)h;
 		super.paintComponent(g);
 		//path image
 		g.drawImage(map, 0, 0, null);

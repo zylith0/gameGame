@@ -5,7 +5,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 
 public abstract class Enemy {
-	protected int x,y,dx,dy,hp,ei,speed;
+	protected int x,y,dx,dy,hp,ei,speed,value;
 	protected Point point;
 	protected Rectangle bounds;
 	
@@ -15,10 +15,11 @@ public abstract class Enemy {
 		this.hp=2;
 		this.ei=ei;
 		this.speed=1;
+		this.value=1;
 		this.point = new Point(x,y);
 		this.bounds = new Rectangle(x,y,40,40);
 	}
-	public Enemy(int x, int y, int dx, int dy,int hp, int ei, int speed){
+	public Enemy(int x, int y, int dx, int dy,int hp, int ei, int speed, int value){
 		this.x=x;
 		this.y=y;
 		this.point= new Point(x,y);
@@ -26,6 +27,7 @@ public abstract class Enemy {
 		this.dy=dy;
 		this.hp=hp;
 		this.speed=speed;
+		this.value=value;
 		this.bounds = new Rectangle(x,y,40,40);
 		this.ei=ei;
 	}
