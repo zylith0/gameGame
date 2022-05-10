@@ -8,17 +8,7 @@ public abstract class Enemy {
 	protected int x,y,dx,dy,hp,ei,speed,value;
 	protected Point point;
 	protected Rectangle bounds;
-	
-	public Enemy(int x, int y, int ei) {
-		this.x=x;
-		this.y=y;
-		this.hp=2;
-		this.ei=ei;
-		this.speed=1;
-		this.value=1;
-		this.point = new Point(x,y);
-		this.bounds = new Rectangle(x,y,40,40);
-	}
+
 	public Enemy(int x, int y, int dx, int dy,int hp, int ei, int speed, int value){
 		this.x=x;
 		this.y=y;
@@ -56,5 +46,8 @@ public abstract class Enemy {
 	}
 	public int getID() {
 		return ei;
+	}
+	public int getValue() {
+		return this.value;
 	}
 }

@@ -14,21 +14,21 @@ public class TPanel extends JPanel{
 	protected boolean highlighted;
 	protected int price,id;
 	
-	public TPanel(String s, int p,int i) {
+	public TPanel(String s, int p,int i, int w, int h) {
 		this.name=s;
 		this.price=p;
 		this.id=i;
 		highlighted = false;
 		try {
 			//change to s later when towers are decided
-			img = ImageIO.read(new File("duke.png")).getScaledInstance(60, 60, Image.SCALE_SMOOTH);
+			img = ImageIO.read(new File(s + ".png")).getScaledInstance(w, h, Image.SCALE_SMOOTH);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
 	public String toString() {
-		//for the mouselistener name
+		//for the mouse listener name
 		return name;
 	}
 	public Image getImage() {
@@ -45,5 +45,15 @@ public class TPanel extends JPanel{
 	}
 	public int getCost() {
 		return price;
+	}
+	public int getRadius() {
+		switch(name) {
+		case "gun": return 400;
+		case "machineGun": return 400;
+		case "rocketLauncher": return 800;
+		case "laser": return 800;
+		case "iceTower": return 200;
+		}
+		return 0;
 	}
 }
