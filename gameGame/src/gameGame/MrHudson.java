@@ -6,31 +6,30 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 
-public class Baloon extends Enemy{
-	
+public class MrHudson extends Enemy {
+
 	protected Image image;
-	
-	public Baloon(int x,int y, int ei) {
-		super(x, y, ei);
-		initPicture();
-		
-	}
-	public Baloon(int x,int y,int dx,int dy, int ei, int speed) {
-		//baloon hp is 2
-		super(x,y,dx,dy,1, ei,speed);
+
+	public MrHudson(int x, int y, int ei) {
+		// hp 50
+		// speed 1
+		// value 200
+		super(x, y, 2, 0, ei, 50, 1, 200);
 		initPicture();
 	}
+
 	public void initPicture() {
 		try {
 			image = ImageIO.read(new File("baloon.png")).getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
 	public Image getImage() {
 		return image;
 	}
+
 	public Rectangle getBounds() {
 		this.bounds.setBounds(x, y, 40, 40);
 		return this.bounds;
