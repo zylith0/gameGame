@@ -217,11 +217,9 @@ public class Board extends JPanel implements ActionListener, MouseListener {
 		}
 		// draw projectiles
 		for (Projectile p : shots) {
-			/*
 			g.setColor(Color.yellow);
 			g.fillOval(p.x, p.y, p.w, p.h);
-			*/
-			g.drawImage(p.getImage(),p.x, p.y, null);
+			// g.drawImage(p.getImage(),p.x, p.y, null);
 		}
 		g.setColor(Color.white);
 		for (Enemy e : enemies) {
@@ -282,7 +280,6 @@ public class Board extends JPanel implements ActionListener, MouseListener {
 						this.money = this.money + em.getValue();
 						this.moneyLab.setText("$" + this.money);
 						em.damage(p.damage);
-						System.out.println(em.hp);
 						if (em.hp <= 0) {
 							enemies.remove(em);
 							break;
@@ -303,13 +300,15 @@ public class Board extends JPanel implements ActionListener, MouseListener {
 							int speed = 10;
 							int dx = (int) Math.round(((em.getCenterPoint().x - t.getPoint().x) / distance) * speed);
 							int dy = (int) Math.round(((em.getCenterPoint().y - t.getPoint().y) / distance) * speed);
-							int theta = (int) Math.round(Math.toDegrees(Math.atan((em.x - t.x) / (em.y -t.y))));
+							double theta = calculateAngle(em.getCenterPoint().x, em.getCenterPoint().y, t.getPoint().x,
+									t.getPoint().y);
+							// System.out.println(theta);
 							// shots.add(new Projectile(t.getPoint().x, t.getPoint().y, (int)
 							// Math.round(dx),(int) Math.round(dy), 20, 20, theta));
 							shots.add(new Projectile(t.getPoint().x, t.getPoint().y, dx, dy, 20, 20, theta));
 						} // System.out.println("within radius");
-						// break is necessary so it only targets first enemies in radius // add for loop
-						// later for potential targeting options
+							// break is necessary so it only targets first enemies in radius // add for loop
+							// later for potential targeting options
 						break;
 					}
 				}
@@ -327,6 +326,12 @@ public class Board extends JPanel implements ActionListener, MouseListener {
 				this.roundnum.setText("Round : " + round);
 			}
 		}
+	}
+
+	public static double calculateAngle(double x1, double y1, double x2, double y2) {
+		double angle = Math.toDegrees(Math.atan2(x2 - x1, y2 - y1));
+		// Keep angle between 0 and 360
+		return (angle);
 	}
 
 	public void initRound(int r) {

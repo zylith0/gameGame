@@ -15,13 +15,14 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 public class Projectile {
-	protected int x, y, dx, dy, damage, w, h, theta;
+	protected int x, y, dx, dy, damage, w, h;
+	protected double theta;
 	protected Rectangle bounds;
 	protected Point point;
 	protected ArrayList<Integer> hits;
 	protected BufferedImage image;
 
-	public Projectile(int x, int y, int dx, int dy, int w, int h, int theta) {
+	public Projectile(int x, int y, int dx, int dy, int w, int h, double theta) {
 		hits = new ArrayList<Integer>();
 		this.x = x;
 		this.y = y;
@@ -42,10 +43,10 @@ public class Projectile {
 		}
 		catch(Exception e) {e.printStackTrace();}
 		//get width twice because the image could be scaled 90 degrees in which it would be tall
-		BufferedImage newImage = new BufferedImage(image.getWidth(),image.getWidth(),image.getType());
+		BufferedImage newImage = new BufferedImage(image.getWidth(),image.getHeight(),image.getType());
 		Graphics2D g = newImage.createGraphics();
 		g.scale(0.1, 0.1);
-		g.rotate(theta);
+		g.rotate(Math.toRadians(theta),w/2,h/2);
 		g.drawImage(this.image,null,0,0);
 		this.image = newImage;
 	}
