@@ -73,7 +73,7 @@ public class Board extends JPanel implements ActionListener, MouseListener {
 	}
 
 	public void initBoard() {
-		// can change string for different map
+		// can change string for differzent mapxxxx
 		readMap("map1");
 		loadRounds();
 		setFocusable(true);
